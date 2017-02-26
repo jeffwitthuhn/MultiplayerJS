@@ -18,7 +18,7 @@ A general purpose library for latency compensation in online games using websock
 All documentation is available on the [project wiki](https://github.com/jeffwitthuhn/MultiplayerJS/wiki).
 
 ## Contributor Guide
-[contribution guidelines](/CONTRIBUTING.md)[contribution guidelines](/CONTRIBUTING.md)
+[contribution guidelines](/CONTRIBUTING.md)
 
 ## License 
 MIT LIcense

@@ -3,7 +3,7 @@
 ## Welcome contributors to the project: 
 
 ## Short Links to Important Resources:
-* docs: [contribution guidelines](/CONTRIBUTING.md)
+* docs: [project wiki](https://github.com/jeffwitthuhn/MultiplayerJS/wiki)
 * bugs: issue tracker / bug report tool
 * communcations: forum link, developer list, IRC/email, Slack, etc.
 ## Testing

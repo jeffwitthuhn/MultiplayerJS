@@ -7,8 +7,8 @@ var MultiplayerServer = {
   tickSpeed: 500, //time beteen server updates 
   timeElapsed: null,
   previousTime: null, 
-  playerObj: {position: {x:0, y:0, z:0}},
-  init: function(server, actionHandler, playerObj, inputHandler) {
+  playerObjTemplate: {position: {x:0, y:0, z:0}},
+  init: function(server, actionHandler, playerObjTemplate, inputHandler) {
     console.log("init");
     this.WsServer = new WebSocket.Server({ server: server });
     this.gameState = {};
@@ -26,8 +26,8 @@ var MultiplayerServer = {
       this.handleAction = actionHandler;
     }
 
-    if(playerObj) {
-      this.playerObj = playerObj;
+    if(playerObjTemplate) {
+      this.playerObjTemplate = playerObjTemplate;
     }
 
     if(inputHandler) {
@@ -37,7 +37,8 @@ var MultiplayerServer = {
   }, 
 
   addPlayer: function(id) {
-    this.gameState.players[id] = Object.create(this.playerObj);
+    this.gameState.players[id] = JSON.parse(JSON.stringify(this.playerObjTemplate));
+    this.gameState.players[id].pid = id;
   },
 
   handleInputs: function(pid, inputs){
@@ -93,6 +94,7 @@ function onConnect(ws){
   });
   ws.id=MultiplayerServer.playerIDCounter;
   MultiplayerServer.playerIDCounter++;
+  MultiplayerServer.addPlayer(ws.id);
 
   var connectMessage = {};
   connectMessage.type = "connect"; 

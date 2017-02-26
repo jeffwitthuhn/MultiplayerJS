@@ -1,35 +1,70 @@
-var express = require('express');
-var path = require('path');
-var app = express();
-var server = require('http').createServer();
-app.use(express.static(path.join(__dirname, '/web')));
-server.on('request', app);
-server.listen(8080, function () {
-  console.log('Listening on http://localhost:8080');
-});
-
 const WebSocket = require('ws');
 
 var MultiplayerServer = {
   gameState: null, 
-  WsServer: 234, 
+  WsServer: null, 
   playerIDCounter: 0,
-
-  init: function(server) {
+  tickSpeed: 1000, //time between server updates 
+  timeElapsed: null,
+  previousTime: null, 
+  playerObj: {position: {x:0, y:0, z:0}},
+  init: function(server, actionHandler, playerObj, updatePositionHandler) {
     this.WsServer = new WebSocket.Server({ server: server });
     this.gameState = {};
     this.gameState.players = {};
-    this.playerIDCounter = 0; 
 
-    this.WsServer.broadcast = 3;
+    this.timeElapsed = new Date().getTime();
+    this.previousTime = new Date().getTime();
+    this.gameState.serverTime = 0; 
+    setInterval(this.serverUpdate.bind(this), this.tickSpeed);
+
     this.WsServer.broadcast = broadcast;
+    this.WsServer.on('connection', onConnect); 
 
-    this.WsServer.on('connection', onConnect);  
+
+    if(updatePositionHandler) {
+      this.updatePosition = updatePositionHandler;
+    } 
+
+    if(actionHandler) {
+      this.handleAction = actionHandler;
+    }
+
+    if(playerObj) {
+      this.playerObj = playerObj;
+    }
+
   }, 
 
   addPlayer: function(id) {
-    gameState.players.id = {};
-  }
+    this.gameState.players[id] = this.playerObj;
+  },
+
+  updatePosition: function(id, update) {
+    var position = this.gameState.players[id].position; 
+    position.x += update.dx; 
+    position.y += update.dy; 
+    position.z += update.dz; 
+  },
+
+  handleAction: function(id, actionId, options) { 
+
+  },
+
+  serverUpdate: function() {
+    this.timeElapsed = new Date().getTime() - this.previousTime;
+    this.previousTime = new Date().getTime();
+    this.gameState.serverTime += this.timeElapsed; 
+
+    var message = {};
+    message.type = "update";
+    message.gameState = this.gameState;
+
+    this.WsServer.broadcast(JSON.stringify(message));
+
+  }, 
+
+
 };
 
 function broadcast(data) {
@@ -42,18 +77,31 @@ function broadcast(data) {
 
 function onConnect(ws){
   ws.on('message', function incoming(message) {
-    console.log('received: %s', message);
+    console.log('received message from p'+ ws.id +': %s', message);
+    var data = JSON.parse( message.data);
+    switch (data.type) {
+      case "updatePosition": 
+        MultiplayerServer.updatePosition(ws.id, data.update); break;
+      case "action": 
+        MultiplayerServer.handleAction(ws.id, data.action, data.options); break;
+
+      }
+
   });
 
   ws.on('close', function () {
-    console.log("closed");
+    console.log("lost connection to player: " + ws.id);
+    delete MultiplayerServer.gameState.players[ws.id];
   });
-
-  ws.send('something');
   ws.id=MultiplayerServer.playerIDCounter;
-  MultiplayerServer.WsServer.broadcast("player: " + MultiplayerServer.playerIDCounter + " connected")
   MultiplayerServer.playerIDCounter++;
+
+  console.log("player "+ ws.id +": connected");
+  var message = {};
+  message.type = "PlayerConnected";
+  message.string = "player: " + ws.id + " connected";
+  MultiplayerServer.WsServer.broadcast(JSON.stringify(message));
+
 }
 
-MultiplayerServer.init(server);
-
+module.exports = MultiplayerServer;

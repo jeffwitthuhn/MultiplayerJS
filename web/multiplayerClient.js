@@ -1,5 +1,5 @@
-var ws = new WebSocket('ws://localhost:8080');
+var ws = new WebSocket('ws://localhost:8000');
 ws.onmessage = function (event) {
   console.log(event.data);
 };
-console.log("hello");
+console.log("hello there");

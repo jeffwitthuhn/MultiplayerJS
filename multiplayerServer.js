@@ -4,11 +4,12 @@ var MultiplayerServer = {
   gameState: null, 
   WsServer: null, 
   playerIDCounter: 0,
-  tickSpeed: 1000, //time between server updates 
+  tickSpeed: 500, //time beteen server updates 
   timeElapsed: null,
   previousTime: null, 
   playerObj: {position: {x:0, y:0, z:0}},
-  init: function(server, actionHandler, playerObj, updatePositionHandler) {
+  init: function(server, actionHandler, playerObj, inputHandler) {
+    console.log("init");
     this.WsServer = new WebSocket.Server({ server: server });
     this.gameState = {};
     this.gameState.players = {};
@@ -21,11 +22,6 @@ var MultiplayerServer = {
     this.WsServer.broadcast = broadcast;
     this.WsServer.on('connection', onConnect); 
 
-
-    if(updatePositionHandler) {
-      this.updatePosition = updatePositionHandler;
-    } 
-
     if(actionHandler) {
       this.handleAction = actionHandler;
     }
@@ -34,17 +30,17 @@ var MultiplayerServer = {
       this.playerObj = playerObj;
     }
 
+    if(inputHandler) {
+      this.handleInputs = inputHandler;
+    }
+
   }, 
 
   addPlayer: function(id) {
-    this.gameState.players[id] = this.playerObj;
+    this.gameState.players[id] = Object.create(this.playerObj);
   },
 
-  updatePosition: function(id, update) {
-    var position = this.gameState.players[id].position; 
-    position.x += update.dx; 
-    position.y += update.dy; 
-    position.z += update.dz; 
+  handleInputs: function(pid, inputs){
   },
 
   handleAction: function(id, actionId, options) { 
@@ -84,6 +80,8 @@ function onConnect(ws){
         MultiplayerServer.updatePosition(ws.id, data.update); break;
       case "action": 
         MultiplayerServer.handleAction(ws.id, data.action, data.options); break;
+      case "input": 
+        MultiplayerServer.handleInputs(ws.id, data.inputs); break;
 
       }
 
@@ -95,6 +93,11 @@ function onConnect(ws){
   });
   ws.id=MultiplayerServer.playerIDCounter;
   MultiplayerServer.playerIDCounter++;
+
+  var connectMessage = {};
+  connectMessage.type = "connect"; 
+  connectMessage.id = ws.id; 
+  ws.send(JSON.stringify(connectMessage));
 
   console.log("player "+ ws.id +": connected");
   var message = {};

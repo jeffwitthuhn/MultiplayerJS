@@ -3,7 +3,7 @@
 ## Welcome contributors to the project: 
 
 ## Short Links to Important Resources:
-* docs: handbook / roadmap (you'll learn more about this in the roadmapping session)
+* docs: [contribution guidelines](/CONTRIBUTING.md)
 * bugs: issue tracker / bug report tool
 * communcations: forum link, developer list, IRC/email, Slack, etc.
 ## Testing

@@ -10,6 +10,8 @@ server.listen(8000, function () {
 });
 
 
+var playerSpeed = 1; 
+
 var MultiplayerServer = require('./multiplayerServer.js');
 
 function handleAction(pid, action) {
@@ -29,6 +31,7 @@ function processInput(pid, inputs) {
       break;  
     }
   }
+  movePlayer(pid, direction);
 }
 
 function movePlayer(pid, direction) {
